@@ -1,0 +1,138 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Segoe UI Variable', 'Segoe UI', sans-serif;
+  background: transparent;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Açık tema (varsayılan) */
+body {
+  --bg:           #f3f3f3;
+  --border:       rgba(0,0,0,0.12);
+  --text:         #1a1a1a;
+  --subtext:      #5a5a5a;
+  --bold:         #111;
+
+  --btn-bg:       #ffffff;
+  --btn-border:   rgba(0,0,0,0.12);
+  --btn-hover:    #e8e8e8;
+  --btn-text:     #1a1a1a;
+
+  --save-bg:      #0067c0;
+  --save-hover:   #005aa3;
+  --save-text:    #ffffff;
+
+  --del-text:     #c42b1c;
+  --del-bg:       transparent;
+  --del-border:   rgba(196,43,28,0.3);
+  --del-hover:    rgba(196,43,28,0.07);
+}
+
+/* Koyu tema */
+body.dark {
+  --bg:           #202020;
+  --border:       rgba(255,255,255,0.1);
+  --text:         #f0f0f0;
+  --subtext:      #ababab;
+  --bold:         #ffffff;
+
+  --btn-bg:       #2d2d2d;
+  --btn-border:   rgba(255,255,255,0.1);
+  --btn-hover:    #3a3a3a;
+  --btn-text:     #e0e0e0;
+
+  --save-bg:      #0078d4;
+  --save-hover:   #1a86dc;
+  --save-text:    #ffffff;
+
+  --del-text:     #ff8c87;
+  --del-bg:       transparent;
+  --del-border:   rgba(255,140,135,0.3);
+  --del-hover:    rgba(255,140,135,0.08);
+}
+
+.dialog {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+  user-select: none;
+}
+
+.text { display: flex; flex-direction: column; gap: 5px; }
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.desc {
+  font-size: 12px;
+  color: var(--subtext);
+  line-height: 1.5;
+}
+
+.desc b { color: var(--bold); font-weight: 500; }
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+.btn-cancel, .btn-delete {
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--btn-text);
+}
+.btn-cancel:hover { background: var(--btn-hover); }
+
+.btn-delete {
+  color: var(--del-text);
+  background: var(--del-bg);
+  border-color: var(--del-border);
+}
+.btn-delete:hover { background: var(--del-hover); }
+
+.btn-save {
+  background: var(--save-bg);
+  color: var(--save-text);
+  border: none;
+  font-weight: 500;
+}
+.btn-save:hover { background: var(--save-hover); }

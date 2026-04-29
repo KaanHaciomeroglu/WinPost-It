@@ -1,0 +1,209 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Temalar ──────────────────────────────────── */
+:root {
+  --note-bg:       #FFFACD;
+  --toolbar-bg:    rgba(0,0,0,0.08);
+  --text-color:    #333;
+  --placeholder:   rgba(0,0,0,0.28);
+  --icon-color:    rgba(0,0,0,0.45);
+  --panel-bg:      rgba(255,255,255,0.92);
+  --panel-border:  rgba(0,0,0,0.1);
+  --panel-text:    #444;
+}
+
+.theme-yellow   { --note-bg:#FFFACD; --toolbar-bg:rgba(0,0,0,0.08); --text-color:#333; --placeholder:rgba(0,0,0,0.28); --icon-color:rgba(0,0,0,0.45); --panel-bg:rgba(255,255,255,0.92); --panel-border:rgba(0,0,0,0.1); --panel-text:#444; }
+.theme-blue     { --note-bg:#B3E5FC; --toolbar-bg:rgba(0,0,0,0.08); --text-color:#1a3a4a; --placeholder:rgba(0,0,0,0.28); --icon-color:rgba(0,0,0,0.45); --panel-bg:rgba(255,255,255,0.92); --panel-border:rgba(0,0,0,0.1); --panel-text:#444; }
+.theme-green    { --note-bg:#C8E6C9; --toolbar-bg:rgba(0,0,0,0.08); --text-color:#1b3a1e; --placeholder:rgba(0,0,0,0.28); --icon-color:rgba(0,0,0,0.45); --panel-bg:rgba(255,255,255,0.92); --panel-border:rgba(0,0,0,0.1); --panel-text:#444; }
+.theme-pink     { --note-bg:#F8BBD9; --toolbar-bg:rgba(0,0,0,0.08); --text-color:#4a1030; --placeholder:rgba(0,0,0,0.28); --icon-color:rgba(0,0,0,0.45); --panel-bg:rgba(255,255,255,0.92); --panel-border:rgba(0,0,0,0.1); --panel-text:#444; }
+.theme-white    { --note-bg:#F5F5F5; --toolbar-bg:rgba(0,0,0,0.07); --text-color:#222; --placeholder:rgba(0,0,0,0.28); --icon-color:rgba(0,0,0,0.4); --panel-bg:rgba(255,255,255,0.95); --panel-border:rgba(0,0,0,0.1); --panel-text:#444; }
+
+/* Koyu temalar */
+.theme-dark     { --note-bg:#2b2b2b; --toolbar-bg:rgba(0,0,0,0.3); --text-color:#e0e0e0; --placeholder:rgba(255,255,255,0.22); --icon-color:rgba(255,255,255,0.5); --panel-bg:rgba(40,40,40,0.97); --panel-border:rgba(255,255,255,0.1); --panel-text:#ccc; }
+.theme-midnight { --note-bg:#1a1a2e; --toolbar-bg:rgba(0,0,0,0.35); --text-color:#c8c8f0; --placeholder:rgba(200,200,240,0.25); --icon-color:rgba(200,200,255,0.5); --panel-bg:rgba(20,20,50,0.97); --panel-border:rgba(255,255,255,0.1); --panel-text:#aab; }
+.theme-charcoal { --note-bg:#3a3a3a; --toolbar-bg:rgba(0,0,0,0.28); --text-color:#d4d4d4; --placeholder:rgba(255,255,255,0.2); --icon-color:rgba(255,255,255,0.45); --panel-bg:rgba(50,50,50,0.97); --panel-border:rgba(255,255,255,0.1); --panel-text:#bbb; }
+
+/* ── Layout ───────────────────────────────────── */
+.note {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 7px;
+  box-shadow: 3px 5px 14px rgba(0,0,0,0.4);
+  overflow: hidden;
+  background: var(--note-bg);
+  transition: background 0.25s;
+  position: relative;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: var(--toolbar-bg);
+  -webkit-app-region: drag;
+  cursor: grab;
+  flex-shrink: 0;
+  transition: background 0.25s;
+}
+
+.toolbar:active { cursor: grabbing; }
+
+.left-actions,
+.right-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--icon-color);
+  padding: 4px 6px;
+  border-radius: 5px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.btn-icon:hover { background: rgba(128,128,128,0.15); }
+.btn-settings:hover { color: #888; }
+.btn-new:hover    { color: #2e7d32; }
+.btn-delete:hover { color: #c62828; }
+
+/* ── Ayar paneli ──────────────────────────────── */
+.settings-panel {
+  position: absolute;
+  top: 36px;
+  left: 6px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 12px 12px;
+  z-index: 100;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+  min-width: 176px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.94) translateY(-4px);
+  transform-origin: top left;
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.2s;
+}
+
+.settings-panel.open {
+  pointer-events: auto;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.panel-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--panel-text);
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--panel-text);
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.theme-btn:hover {
+  background: rgba(128,128,128,0.12);
+  border-color: rgba(128,128,128,0.25);
+}
+
+.theme-btn.active {
+  border-color: rgba(80,80,80,0.55);
+  background: rgba(128,128,128,0.15);
+}
+
+.theme-btn.active .theme-preview::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid rgba(80,80,80,0.6);
+}
+
+.theme-preview {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* ── Textarea ─────────────────────────────────── */
+textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-color);
+  font-family: 'Segoe UI', sans-serif;
+  transition: color 0.25s;
+}
+
+textarea::placeholder {
+  color: var(--placeholder);
+}
+
+textarea::-webkit-scrollbar {
+  width: 5px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: var(--icon-color);
+  border-radius: 10px;
+  opacity: 0.5;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--text-color);
+  opacity: 0.7;
+}

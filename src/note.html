@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <link rel="stylesheet" href="note.css" />
+  <title>Post-it</title>
+</head>
+<body>
+  <div class="note" id="note">
+    <div class="toolbar" id="toolbar">
+      <div class="left-actions" style="-webkit-app-region:no-drag">
+        <button class="btn-icon btn-settings" id="btn-settings" title="Ayarlar">⚙</button>
+      </div>
+      <div class="right-actions" style="-webkit-app-region:no-drag">
+        <button class="btn-icon btn-new" title="Yeni not">+</button>
+        <button class="btn-icon btn-delete" title="Sil">×</button>
+      </div>
+    </div>
+
+    <!-- Ayar paneli -->
+    <div class="settings-panel" id="settings-panel">
+      <p class="panel-label">Tema</p>
+      <div class="theme-grid" id="theme-grid">
+        <button class="theme-btn" data-theme="yellow"  title="Sarı">
+          <span class="theme-preview" style="background:#FFFACD"></span>Sarı
+        </button>
+        <button class="theme-btn" data-theme="blue"    title="Mavi">
+          <span class="theme-preview" style="background:#B3E5FC"></span>Mavi
+        </button>
+        <button class="theme-btn" data-theme="green"   title="Yeşil">
+          <span class="theme-preview" style="background:#C8E6C9"></span>Yeşil
+        </button>
+        <button class="theme-btn" data-theme="pink"    title="Pembe">
+          <span class="theme-preview" style="background:#F8BBD9"></span>Pembe
+        </button>
+        <button class="theme-btn" data-theme="white"   title="Beyaz">
+          <span class="theme-preview" style="background:#F5F5F5;box-shadow:inset 0 0 0 1px #ccc"></span>Beyaz
+        </button>
+        <button class="theme-btn" data-theme="dark"    title="Koyu">
+          <span class="theme-preview" style="background:#2b2b2b"></span>Koyu
+        </button>
+        <button class="theme-btn" data-theme="midnight" title="Gece">
+          <span class="theme-preview" style="background:#1a1a2e"></span>Gece
+        </button>
+        <button class="theme-btn" data-theme="charcoal" title="Antrasit">
+          <span class="theme-preview" style="background:#3a3a3a"></span>Antrasit
+        </button>
+      </div>
+    </div>
+
+    <textarea id="content" placeholder="Notunuzu buraya yazın..."></textarea>
+  </div>
+  <script src="note.js"></script>
+</body>
+</html>
