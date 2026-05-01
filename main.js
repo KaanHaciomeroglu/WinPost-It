@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, nativeImage, Tray, Menu, screen, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, nativeImage, Tray, Menu, screen, nativeTheme, dialog } = require('electron');
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -10,6 +10,7 @@ const NOTES_FILE    = path.join(NOTES_DIR, 'notes.json');
 const SETTINGS_FILE = path.join(NOTES_DIR, 'settings.json');
 
 const noteWindows = new Map();
+let pooledWindow = null;
 
 // ── Ayarlar ────────────────────────────────────────────────────────────────
 function loadSettings() {
@@ -55,7 +56,7 @@ function deleteNoteFromJson(id) {
 // ── .postit dosyası dışa aktar ─────────────────────────────────────────────
 function exportNoteToPostit(note) {
   ensureNotesDir();
-  const firstLine = (note.text || '').split('\n')[0].trim().slice(0, 40) || 'not';
+  const firstLine = (note.text || '').replace(/<[^>]*>/g, '').trim().split('\n')[0].slice(0, 40) || 'not';
   const safeName  = firstLine.replace(/[\\/:*?"<>|]/g, '_');
   const timestamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
   const filename  = `${safeName}_${timestamp}.postit`;
@@ -149,7 +150,7 @@ let tray = null;
 function buildTrayMenu() {
   const notes = loadNotes();
   const noteItems = notes.map(note => ({
-    label: (note.text || '').trim().split('\n')[0].slice(0, 40) || '(boş not)',
+    label: (note.text || '').replace(/<[^>]*>/g, '').trim().split('\n')[0].slice(0, 40) || '(boş not)',
     click: () => {
       const win = noteWindows.get(note.id);
       if (win && !win.isDestroyed()) { win.show(); win.focus(); }
@@ -197,27 +198,59 @@ function closeNoteWindow(id) {
   updateTray();
 }
 
-function createNoteWindow(note) {
+function createPooledWindow() {
   const win = new BrowserWindow({
-    x: note.x,
-    y: note.y,
-    width:  note.width  || 220,
-    height: note.height || 240,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: false,
-    skipTaskbar: true,
-    minimizable: false,
-    resizable: true,
+    show: false,
+    width: 220, height: 240,
+    frame: false, transparent: true,
+    alwaysOnTop: false, skipTaskbar: true,
+    minimizable: false, resizable: true,
     icon: path.join(__dirname, 'assets', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
     },
   });
-
   win.loadFile(path.join(__dirname, 'src', 'note.html'));
-  win.webContents.on('did-finish-load', () => win.webContents.send('note:init', note));
+  pooledWindow = win;
+}
+
+function createNoteWindow(note) {
+  let win;
+  if (pooledWindow && !pooledWindow.isDestroyed()) {
+    win = pooledWindow;
+    pooledWindow = null;
+  } else {
+    win = new BrowserWindow({
+      show: false,
+      width: note.width || 220, height: note.height || 240,
+      frame: false, transparent: true,
+      alwaysOnTop: false, skipTaskbar: true,
+      minimizable: false, resizable: true,
+      icon: path.join(__dirname, 'assets', 'icon.png'),
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        contextIsolation: true,
+      },
+    });
+    win.loadFile(path.join(__dirname, 'src', 'note.html'));
+  }
+
+  win.setBounds({ x: note.x, y: note.y, width: note.width || 220, height: note.height || 240 });
+
+  const sendInit = () => {
+    win.webContents.send('note:init', note);
+    win.show();
+  };
+
+  if (win.webContents.isLoading()) {
+    win.webContents.once('did-finish-load', sendInit);
+  } else {
+    sendInit();
+  }
+
+  // Hemen yeni havuz penceresi hazırla
+  setImmediate(createPooledWindow);
 
   const updatePosition = () => {
     const [x, y]         = win.getPosition();
@@ -245,6 +278,8 @@ function createNewNote() {
     y: Math.floor(height / 2 - 120),
     width: 220,
     height: 240,
+    imageData: null,
+    imageHeight: 120,
   };
   upsertNote(note);
   createNoteWindow(note);
@@ -258,6 +293,7 @@ app.whenReady().then(() => {
   app.setLoginItemSettings({ openAtLogin: true });
   registerFileAssociation();
   createTray();
+  createPooledWindow();
 
   const postitArg = process.argv.find(a => a.endsWith('.postit'));
   if (postitArg) {
@@ -286,7 +322,9 @@ ipcMain.on('note:save', (event, note) => {
 
 ipcMain.handle('note:close', async (event, note) => {
   const win = noteWindows.get(note.id);
-  const isEmpty = !note.text || note.text.trim() === '';
+  const textContent = (note.text || '').replace(/<[^>]*>/g, '').trim();
+  const hasImage = (note.text || '').includes('<img');
+  const isEmpty = !hasImage && textContent === '';
 
   if (isEmpty) { closeNoteWindow(note.id); return; }
 
@@ -301,3 +339,17 @@ ipcMain.handle('note:close', async (event, note) => {
 });
 
 ipcMain.on('note:new', () => createNewNote());
+
+ipcMain.handle('note:pick-image', async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+    title: 'Görsel Seç',
+    filters: [{ name: 'Görseller', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'] }],
+    properties: ['openFile'],
+  });
+  if (canceled || filePaths.length === 0) return null;
+  const data = fs.readFileSync(filePaths[0]);
+  const ext = path.extname(filePaths[0]).slice(1).toLowerCase();
+  const mime = ext === 'jpg' ? 'jpeg' : ext;
+  return `data:image/${mime};base64,${data.toString('base64')}`;
+});

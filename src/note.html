@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:">
   <link rel="stylesheet" href="note.css" />
   <title>Post-it</title>
 </head>
@@ -13,6 +13,7 @@
         <button class="btn-icon btn-settings" id="btn-settings" title="Ayarlar">⚙</button>
       </div>
       <div class="right-actions" style="-webkit-app-region:no-drag">
+        <button class="btn-icon btn-image" title="Görsel ekle">🖼</button>
         <button class="btn-icon btn-new" title="Yeni not">+</button>
         <button class="btn-icon btn-delete" title="Sil">×</button>
       </div>
@@ -49,8 +50,17 @@
       </div>
     </div>
 
-    <textarea id="content" placeholder="Notunuzu buraya yazın..."></textarea>
+    <div id="content" class="editor" contenteditable="true" data-placeholder="Notunuzu buraya yazın..."></div>
   </div>
+
+  <!-- Görsel seçim / yeniden boyutlandırma overlay -->
+  <div id="img-overlay" class="img-overlay">
+    <div class="img-handle img-handle-nw" data-dir="nw"></div>
+    <div class="img-handle img-handle-ne" data-dir="ne"></div>
+    <div class="img-handle img-handle-sw" data-dir="sw"></div>
+    <div class="img-handle img-handle-se" data-dir="se"></div>
+  </div>
+
   <script src="note.js"></script>
 </body>
 </html>

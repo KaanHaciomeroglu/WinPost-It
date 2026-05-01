@@ -83,6 +83,7 @@ html, body {
 
 .btn-icon:hover { background: rgba(128,128,128,0.15); }
 .btn-settings:hover { color: #888; }
+.btn-image:hover  { color: #1565c0; }
 .btn-new:hover    { color: #2e7d32; }
 .btn-delete:hover { color: #c62828; }
 
@@ -169,41 +170,66 @@ html, body {
   position: relative;
 }
 
-/* ── Textarea ─────────────────────────────────── */
-textarea {
+/* ── Editor ───────────────────────────────────── */
+.editor {
   flex: 1;
   width: 100%;
-  resize: none;
-  border: none;
+  overflow-y: auto;
   outline: none;
-  background: transparent;
   padding: 10px 12px;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-color);
   font-family: 'Segoe UI', sans-serif;
   transition: color 0.25s;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
-textarea::placeholder {
+.editor:empty::before {
+  content: attr(data-placeholder);
   color: var(--placeholder);
+  pointer-events: none;
 }
 
-textarea::-webkit-scrollbar {
-  width: 5px;
+.editor::-webkit-scrollbar       { width: 5px; }
+.editor::-webkit-scrollbar-track { background: transparent; }
+.editor::-webkit-scrollbar-thumb { background: var(--icon-color); border-radius: 10px; }
+.editor::-webkit-scrollbar-thumb:hover { background: var(--text-color); }
+
+.note-img {
+  display: inline-block;
+  max-width: 100%;
+  cursor: pointer;
+  vertical-align: middle;
+  border-radius: 3px;
 }
 
-textarea::-webkit-scrollbar-track {
-  background: transparent;
+/* ── Görsel overlay / boyutlandırma ──────────── */
+.img-overlay {
+  position: fixed;
+  pointer-events: none;
+  display: none;
+  box-sizing: border-box;
+  outline: 2px solid #1976d2;
 }
 
-textarea::-webkit-scrollbar-thumb {
-  background: var(--icon-color);
-  border-radius: 10px;
-  opacity: 0.5;
+.img-overlay.visible {
+  display: block;
+  pointer-events: none;
 }
 
-textarea::-webkit-scrollbar-thumb:hover {
-  background: var(--text-color);
-  opacity: 0.7;
+.img-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border: 2px solid #1976d2;
+  border-radius: 2px;
+  pointer-events: all;
 }
+
+.img-handle-nw { top: -5px; left: -5px; cursor: nw-resize; }
+.img-handle-ne { top: -5px; right: -5px; cursor: ne-resize; }
+.img-handle-sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+.img-handle-se { bottom: -5px; right: -5px; cursor: se-resize; }
