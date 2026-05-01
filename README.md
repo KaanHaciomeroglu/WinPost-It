@@ -1,4 +1,4 @@
-# Post-it
+# WinPost-it
 
 Windows masaüstü için hafif, çok pencereli yapışkan not uygulaması.
 
