@@ -12,7 +12,7 @@ Windows masaüstü için hafif, çok pencereli yapışkan not uygulaması.
 - Sistem başlangıcında otomatik açılır
 - Sistem tepsisi ikonu — açık notları görüntüle, yeni not oluştur, tümünü kapat
 - `.postit` dosya formatıyla not dışa aktarma ve açma desteği
-- Görsel ekleme: 🖼 butonuyla dosyadan veya Ctrl+V ile panodan görsel ekle; metin içinde istediğin konuma yerleştir, köşe handle'larıyla yeniden boyutlandır
+- Görsel ekleme: ```🖼``` butonuyla dosyadan veya Ctrl+V ile panodan görsel ekle; metin içinde istediğin konuma yerleştir, köşe handle'larıyla yeniden boyutlandır
 
 ## Kurulum
 
