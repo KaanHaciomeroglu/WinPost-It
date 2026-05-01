@@ -12,6 +12,7 @@ Windows masaüstü için hafif, çok pencereli yapışkan not uygulaması.
 - Sistem başlangıcında otomatik açılır
 - Sistem tepsisi ikonu — açık notları görüntüle, yeni not oluştur, tümünü kapat
 - `.postit` dosya formatıyla not dışa aktarma ve açma desteği
+- Görsel ekleme: 🖼 butonuyla dosyadan veya Ctrl+V ile panodan görsel ekle; metin içinde istediğin konuma yerleştir, köşe handle'larıyla yeniden boyutlandır
 
 ## Kurulum
 
@@ -31,13 +32,13 @@ npm run build
 ## Proje Yapısı
 
 ```
-main.js              # Ana süreç: pencere yönetimi, IPC, dosya I/O, tray
-preload.js           # contextBridge — renderer'a güvenli IPC API'si sunar
+main.js              # Ana süreç: pencere yönetimi, pencere havuzu, IPC, dosya I/O, tray
+preload.js           # contextBridge — renderer'a güvenli IPC API'si sunar (görsel seçimi dahil)
 preload-dialog.js    # Dialog penceresi için contextBridge
 src/
-  note.html          # Her post-it penceresi
-  note.css           # Post-it stilleri
-  note.js            # Renderer: yazma, tema seçimi, butonlar
+  note.html          # Her post-it penceresi (contenteditable editör + görsel overlay)
+  note.css           # Post-it stilleri (temalar, editör, görsel boyutlandırma UI)
+  note.js            # Renderer: yazma, görsel ekleme/yapıştırma/boyutlandırma, tema seçimi
   dialog.html        # Kapatma onay dialog'u
 assets/
   icon.ico           # Uygulama ve dosya ilişkilendirme ikonu
@@ -51,7 +52,7 @@ Notlar `%USERPROFILE%\Documents\post-it\notes.json` dosyasında saklanır.
 ```json
 {
   "id": "uuid",
-  "text": "Not içeriği",
+  "text": "Not içeriği (HTML — görseller base64 olarak gömülüdür)",
   "theme": "yellow",
   "color": "#FFFACD",
   "x": 120,
@@ -71,3 +72,7 @@ Notlar `%USERPROFILE%\Documents\post-it\notes.json` dosyasında saklanır.
 | Notu taşı | Toolbar'dan sürükle |
 | Tüm notları kapat | Tray → Tüm Notları Kapat |
 | Uygulamadan çık | Tray → Çıkış |
+| Görsel ekle (dosyadan) | Toolbar'daki `🖼` butonu |
+| Görsel ekle (panodan) | Editöre tıkla → `Ctrl+V` |
+| Görseli yeniden boyutlandır | Görsele tıkla → köşe handle'larını sürükle |
+| Görseli sil | Görsele tıkla → `Delete` veya `Backspace` |
