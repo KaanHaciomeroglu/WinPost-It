@@ -56,11 +56,14 @@ function deleteNoteFromJson(id) {
 // ── .postit dosyası dışa aktar ─────────────────────────────────────────────
 function exportNoteToPostit(note) {
   ensureNotesDir();
-  const firstLine = (note.text || '').replace(/<[^>]*>/g, '').trim().split('\n')[0].slice(0, 40) || 'not';
-  const safeName  = firstLine.replace(/[\\/:*?"<>|]/g, '_');
-  const timestamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
-  const filename  = `${safeName}_${timestamp}.postit`;
-  const filepath  = path.join(NOTES_DIR, filename);
+  let filepath = note.sourceFile && fs.existsSync(note.sourceFile) ? note.sourceFile : null;
+  if (!filepath) {
+    const firstLine = (note.text || '').replace(/<[^>]*>/g, '').trim().split('\n')[0].slice(0, 40) || 'not';
+    const safeName  = firstLine.replace(/[\\/:*?"<>|]/g, '_');
+    const timestamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+    const shortId   = (note.id || '').slice(0, 8);
+    filepath = path.join(NOTES_DIR, `${safeName}_${timestamp}_${shortId}.postit`);
+  }
   fs.writeFileSync(filepath, JSON.stringify({
     text:  note.text  || '',
     theme: note.theme || 'yellow',
@@ -205,7 +208,7 @@ function createPooledWindow() {
     frame: false, transparent: true,
     alwaysOnTop: false, skipTaskbar: true,
     minimizable: false, resizable: true,
-    icon: path.join(__dirname, 'assets', 'icon.png'),
+    icon: path.join(__dirname, 'assets', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -227,7 +230,7 @@ function createNoteWindow(note) {
       frame: false, transparent: true,
       alwaysOnTop: false, skipTaskbar: true,
       minimizable: false, resizable: true,
-      icon: path.join(__dirname, 'assets', 'icon.png'),
+      icon: path.join(__dirname, 'assets', 'icon.ico'),
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
@@ -326,7 +329,7 @@ ipcMain.handle('note:close', async (event, note) => {
   const hasImage = (note.text || '').includes('<img');
   const isEmpty = !hasImage && textContent === '';
 
-  if (isEmpty) { closeNoteWindow(note.id); return; }
+  if (isEmpty || !note.isDirty) { closeNoteWindow(note.id); return; }
 
   const action = await showCloseDialog(win);
 

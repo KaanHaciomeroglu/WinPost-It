@@ -21,13 +21,15 @@ npm install
 npm start
 ```
 
-## Build (Windows .exe)
+## Build (Windows Setup)
 
 ```bash
 npm run build
 ```
 
-Çıktı: `dist-pkg\Post-it-win32-x64\Post-it.exe`
+Çıktı: `dist\Post-it Setup 1.0.0.exe`
+
+Setup kurulumda masaüstüne kısayol oluşturur ve kurulum klasörü seçimine izin verir.
 
 ## Proje Yapısı
 
@@ -41,8 +43,7 @@ src/
   note.js            # Renderer: yazma, görsel ekleme/yapıştırma/boyutlandırma, tema seçimi
   dialog.html        # Kapatma onay dialog'u
 assets/
-  icon.ico           # Uygulama ve dosya ilişkilendirme ikonu
-  note.png           # Kaynak ikon görseli
+  icon.ico           # Uygulama ikonu (setup ve .exe)
 ```
 
 ## Veri Depolama
@@ -62,12 +63,14 @@ Notlar `%USERPROFILE%\Documents\post-it\notes.json` dosyasında saklanır.
 }
 ```
 
+`.postit` dosyaları `%USERPROFILE%\Documents\post-it\` klasörüne kaydedilir. Daha önce kaydedilmiş bir `.postit` güncellendiğinde yeni dosya oluşturulmaz, mevcut dosya güncellenir.
+
 ## Kullanım
 
 | İşlem | Nasıl |
 |---|---|
 | Yeni not | Toolbar'daki `+` butonu veya tray menüsü |
-| Notu sil | Toolbar'daki `×` butonu |
+| Notu kapat | Toolbar'daki `×` butonu |
 | Tema değiştir | Toolbar'daki `⚙` butonu → tema seç |
 | Notu taşı | Toolbar'dan sürükle |
 | Tüm notları kapat | Tray → Tüm Notları Kapat |

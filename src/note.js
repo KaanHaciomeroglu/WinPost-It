@@ -2,6 +2,7 @@ let currentNote = null;
 let saveTimeout = null;
 let selectedImg = null;
 let savedRange  = null;
+let isDirty     = false;
 
 const noteEl      = document.getElementById('note');
 const editor      = document.getElementById('content');
@@ -32,8 +33,9 @@ function applyTheme(themeKey) {
 function scheduleSave() {
   if (!currentNote) return;
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => {
-    currentNote.text = editor.innerHTML;
+  saveTimeout = setTimeout(async () => {
+    isDirty = true;
+    currentNote.text = await getEditorHTML();
     window.postit.save(currentNote);
   }, 500);
 }
@@ -127,6 +129,25 @@ window.addEventListener('resize', () => {
 
 // ── Görsel ekleme ──────────────────────────────────────────────────────────
 
+function blobSrcToDataUrl(img) {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    canvas.width  = img.naturalWidth  || img.width  || 1;
+    canvas.height = img.naturalHeight || img.height || 1;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    resolve(canvas.toDataURL());
+  });
+}
+
+async function getEditorHTML() {
+  const blobImgs = Array.from(editor.querySelectorAll('img'))
+    .filter(img => img.src.startsWith('blob:'));
+  await Promise.all(blobImgs.map(async img => {
+    img.src = await blobSrcToDataUrl(img);
+  }));
+  return editor.innerHTML;
+}
+
 function saveSelection() {
   const sel = window.getSelection();
   if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
@@ -188,6 +209,7 @@ editor.addEventListener('paste', (e) => {
 
 window.postit.init((note) => {
   currentNote = note;
+  isDirty = false;
   editor.innerHTML = note.text || '';
   applyTheme(note.theme || 'yellow');
 });
@@ -228,5 +250,6 @@ document.querySelector('.btn-new').addEventListener('click', () => {
 document.querySelector('.btn-delete').addEventListener('click', () => {
   if (!currentNote) return;
   currentNote.text = editor.innerHTML;
+  currentNote.isDirty = isDirty;
   window.postit.close(currentNote);
 });
