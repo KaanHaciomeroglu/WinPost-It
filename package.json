@@ -11,9 +11,17 @@
     "appId": "com.postit.app",
     "productName": "Post-it",
     "icon": "assets/icon.ico",
+    "asar": false,
     "win": {
-      "target": "portable",
-      "icon": "assets/icon.ico"
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "forceCodeSigning": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Post-it"
     },
     "files": [
       "main.js",
