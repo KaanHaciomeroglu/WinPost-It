@@ -69,6 +69,10 @@ function exportNoteToPostit(note) {
     theme: note.theme || 'yellow',
     color: note.color || '#FFFACD',
   }, null, 2), 'utf-8');
+  if (note.sourceFile !== filepath) {
+    note.sourceFile = filepath;
+    upsertNote(note);
+  }
   return filepath;
 }
 
@@ -136,14 +140,16 @@ function showCloseDialog(parentWin) {
       dlg.webContents.send('dialog:theme', nativeTheme.shouldUseDarkColors);
     });
 
+    const handler = (_e, action) => cleanup(action);
+
     const cleanup = (action) => {
-      ipcMain.removeAllListeners('dialog:response');
+      ipcMain.removeListener('dialog:response', handler);
       if (!dlg.isDestroyed()) dlg.close();
       resolve(action);
     };
 
-    ipcMain.once('dialog:response', (_e, action) => cleanup(action));
-    dlg.on('closed', () => { ipcMain.removeAllListeners('dialog:response'); resolve('cancel'); });
+    ipcMain.on('dialog:response', handler);
+    dlg.on('closed', () => { ipcMain.removeListener('dialog:response', handler); resolve('cancel'); });
   });
 }
 
@@ -156,7 +162,7 @@ function buildTrayMenu() {
     label: (note.text || '').replace(/<[^>]*>/g, '').trim().split('\n')[0].slice(0, 40) || '(boş not)',
     click: () => {
       const win = noteWindows.get(note.id);
-      if (win && !win.isDestroyed()) { win.show(); win.focus(); }
+      if (win && !win.isDestroyed()) { win.show(); win.moveTop(); win.focus(); }
     },
   }));
 
@@ -193,6 +199,20 @@ function createTray() {
 }
 
 // ── Pencere yönetimi ───────────────────────────────────────────────────────
+
+function clampBounds(x, y, width, height) {
+  const displays = screen.getAllDisplays();
+  const fits = displays.some(d => {
+    const { x: dx, y: dy, width: dw, height: dh } = d.workArea;
+    return x < dx + dw && x + width > dx && y < dy + dh && y + height > dy;
+  });
+  if (!fits) {
+    const { x: dx, y: dy, width: dw, height: dh } = screen.getPrimaryDisplay().workArea;
+    x = Math.floor(dx + dw / 2 - width / 2);
+    y = Math.floor(dy + dh / 2 - height / 2);
+  }
+  return { x, y, width, height };
+}
 function closeNoteWindow(id) {
   const win = noteWindows.get(id);
   if (win && !win.isDestroyed()) win.close();
@@ -239,7 +259,7 @@ function createNoteWindow(note) {
     win.loadFile(path.join(__dirname, 'src', 'note.html'));
   }
 
-  win.setBounds({ x: note.x, y: note.y, width: note.width || 220, height: note.height || 240 });
+  win.setBounds(clampBounds(note.x, note.y, note.width || 220, note.height || 240));
 
   const sendInit = () => {
     win.webContents.send('note:init', note);
@@ -255,12 +275,17 @@ function createNoteWindow(note) {
   // Hemen yeni havuz penceresi hazırla
   setImmediate(createPooledWindow);
 
+  let positionSaveTimer = null;
   const updatePosition = () => {
-    const [x, y]         = win.getPosition();
-    const [width, height] = win.getSize();
-    const notes = loadNotes();
-    const idx = notes.findIndex(n => n.id === note.id);
-    if (idx >= 0) { notes[idx].x = x; notes[idx].y = y; notes[idx].width = width; notes[idx].height = height; saveNotes(notes); }
+    clearTimeout(positionSaveTimer);
+    positionSaveTimer = setTimeout(() => {
+      if (win.isDestroyed()) return;
+      const [x, y]         = win.getPosition();
+      const [width, height] = win.getSize();
+      const notes = loadNotes();
+      const idx = notes.findIndex(n => n.id === note.id);
+      if (idx >= 0) { notes[idx].x = x; notes[idx].y = y; notes[idx].width = width; notes[idx].height = height; saveNotes(notes); }
+    }, 300);
   };
 
   win.on('moved', updatePosition);
@@ -293,7 +318,10 @@ const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) { app.quit(); }
 
 app.whenReady().then(() => {
-  app.setLoginItemSettings({ openAtLogin: true });
+  const settings = loadSettings();
+  if (settings.openAtLogin !== false) {
+    app.setLoginItemSettings({ openAtLogin: true });
+  }
   registerFileAssociation();
   createTray();
   createPooledWindow();
@@ -329,7 +357,7 @@ ipcMain.handle('note:close', async (event, note) => {
   const hasImage = (note.text || '').includes('<img');
   const isEmpty = !hasImage && textContent === '';
 
-  if (isEmpty || !note.isDirty) { closeNoteWindow(note.id); return; }
+  if (isEmpty) { closeNoteWindow(note.id); return; }
 
   const action = await showCloseDialog(win);
 

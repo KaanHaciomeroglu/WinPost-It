@@ -34,7 +34,6 @@ function scheduleSave() {
   if (!currentNote) return;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(async () => {
-    isDirty = true;
     currentNote.text = await getEditorHTML();
     window.postit.save(currentNote);
   }, 500);
@@ -241,7 +240,7 @@ document.querySelectorAll('.theme-btn').forEach(btn => {
 
 // ── Kaydet / yeni / sil ────────────────────────────────────────────────────
 
-editor.addEventListener('input', scheduleSave);
+editor.addEventListener('input', () => { isDirty = true; scheduleSave(); });
 
 document.querySelector('.btn-new').addEventListener('click', () => {
   window.postit.new();
