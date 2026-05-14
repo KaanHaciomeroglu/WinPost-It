@@ -1,6 +1,6 @@
 {
   "name": "postit-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Windows masaüstü post-it uygulaması",
   "main": "main.js",
   "scripts": {
