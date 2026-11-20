@@ -9,8 +9,17 @@ const NOTES_DIR     = path.join(os.homedir(), 'Documents', 'post-it');
 const NOTES_FILE    = path.join(NOTES_DIR, 'notes.json');
 const SETTINGS_FILE = path.join(NOTES_DIR, 'settings.json');
 
+// ── RAM optimizasyonu ──────────────────────────────────────────────────────
+// GPU sürecini kaldır (basit not arayüzü için yazılım render yeterli)
+app.disableHardwareAcceleration();
+// Tüm pencereler tek renderer sürecini paylaşsın (her not için ayrı süreç açma)
+app.commandLine.appendSwitch('renderer-process-limit', '1');
+// V8 heap sınırı + gereksiz Chromium özelliklerini kapat
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=64 --lite-mode');
+app.commandLine.appendSwitch('disable-features', 'SpellCheck,TranslateUI,MediaRouter,AutofillServerCommunication,OptimizationHints,CalculateNativeWinOcclusion');
+app.commandLine.appendSwitch('disable-background-networking');
+
 const noteWindows = new Map();
-let pooledWindow = null;
 
 // ── Ayarlar ────────────────────────────────────────────────────────────────
 function loadSettings() {
@@ -132,6 +141,7 @@ function showCloseDialog(parentWin) {
       webPreferences: {
         preload: path.join(__dirname, 'preload-dialog.js'),
         contextIsolation: true,
+        spellcheck: false,
       },
     });
 
@@ -221,10 +231,10 @@ function closeNoteWindow(id) {
   updateTray();
 }
 
-function createPooledWindow() {
+function createNoteWindow(note) {
   const win = new BrowserWindow({
     show: false,
-    width: 220, height: 240,
+    width: note.width || 220, height: note.height || 240,
     frame: false, transparent: true,
     alwaysOnTop: false, skipTaskbar: true,
     minimizable: false, resizable: true,
@@ -232,32 +242,10 @@ function createPooledWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
+      spellcheck: false,
     },
   });
   win.loadFile(path.join(__dirname, 'src', 'note.html'));
-  pooledWindow = win;
-}
-
-function createNoteWindow(note) {
-  let win;
-  if (pooledWindow && !pooledWindow.isDestroyed()) {
-    win = pooledWindow;
-    pooledWindow = null;
-  } else {
-    win = new BrowserWindow({
-      show: false,
-      width: note.width || 220, height: note.height || 240,
-      frame: false, transparent: true,
-      alwaysOnTop: false, skipTaskbar: true,
-      minimizable: false, resizable: true,
-      icon: path.join(__dirname, 'assets', 'icon.ico'),
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-        contextIsolation: true,
-      },
-    });
-    win.loadFile(path.join(__dirname, 'src', 'note.html'));
-  }
 
   win.setBounds(clampBounds(note.x, note.y, note.width || 220, note.height || 240));
 
@@ -271,9 +259,6 @@ function createNoteWindow(note) {
   } else {
     sendInit();
   }
-
-  // Hemen yeni havuz penceresi hazırla
-  setImmediate(createPooledWindow);
 
   let positionSaveTimer = null;
   const updatePosition = () => {
@@ -324,7 +309,6 @@ app.whenReady().then(() => {
   }
   registerFileAssociation();
   createTray();
-  createPooledWindow();
 
   const postitArg = process.argv.find(a => a.endsWith('.postit'));
   if (postitArg) {
